@@ -7,6 +7,7 @@ using UnityEngine.Tilemaps;
 public class PlayerMove : MonoBehaviour
 {
     [SerializeField] private List<Tilemap> tilemaps;
+    [SerializeField] private SpriteRenderer playerSprite;
 
     // Start is called before the first frame update
     void Start()
@@ -28,6 +29,12 @@ public class PlayerMove : MonoBehaviour
                 if (tilemap.HasTile(tilemap.WorldToCell(mousePointInWorld)))
                 {
                     tallestLayer = tilemap.name + tilemap.WorldToCell(mousePointInWorld);
+                    transform.position = tilemap.GetCellCenterWorld(tilemap.WorldToCell(mousePointInWorld));
+
+                    if (Int32.TryParse(tilemap.name, out var newLayer))
+                    {
+                        playerSprite.sortingOrder = newLayer + 1;
+                    }
                     break;
                 }
             }
