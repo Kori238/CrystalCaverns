@@ -8,6 +8,7 @@ public class PlayerMove : MonoBehaviour
 {
     [SerializeField] private List<Tilemap> tilemaps;
     [SerializeField] private SpriteRenderer playerSprite;
+    Vector2 layerMultiplier = new Vector2(0, 0.6f);
 
     // Start is called before the first frame update
     void Start()
@@ -24,19 +25,23 @@ public class PlayerMove : MonoBehaviour
             Debug.Log("mouse up");
             
             string tallestLayer = "none";
+            Tilemap previousTilemap = null;
+            Vector2 previousLayerVector = Vector2.zero;
             foreach (var tilemap in tilemaps)
             {
                 Int32.TryParse(tilemap.name, out var newLayer);
+                Vector2 layerVector = layerMultiplier * newLayer;
 
-
-                Vector2 layerVector = new Vector2((int)(newLayer * 0.24), (int)(newLayer * 0.24));
-                if (tilemap.HasTile(tilemap.WorldToCell(mousePointInWorld - layerVector)))
+                if (tilemap.HasTile(tilemap.WorldToCell(mousePointInWorld - layerVector)) 
+                                    && (previousTilemap == null || !previousTilemap.HasTile(tilemap.WorldToCell(mousePointInWorld - layerVector))))
                 {
                     tallestLayer = tilemap.name + tilemap.WorldToCell(mousePointInWorld - layerVector);
                     transform.position = tilemap.GetCellCenterWorld(tilemap.WorldToCell(mousePointInWorld - layerVector));
                     playerSprite.sortingOrder = newLayer + 1;
                     break;
                 }
+                previousTilemap = tilemap;
+                previousLayerVector = layerVector;
             }
             Debug.Log(tallestLayer);
         }
