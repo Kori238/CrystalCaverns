@@ -26,15 +26,15 @@ public class PlayerMove : MonoBehaviour
             string tallestLayer = "none";
             foreach (var tilemap in tilemaps)
             {
-                if (tilemap.HasTile(tilemap.WorldToCell(mousePointInWorld)))
-                {
-                    tallestLayer = tilemap.name + tilemap.WorldToCell(mousePointInWorld);
-                    transform.position = tilemap.GetCellCenterWorld(tilemap.WorldToCell(mousePointInWorld));
+                Int32.TryParse(tilemap.name, out var newLayer);
 
-                    if (Int32.TryParse(tilemap.name, out var newLayer))
-                    {
-                        playerSprite.sortingOrder = newLayer + 1;
-                    }
+
+                Vector2 layerVector = new Vector2((int)(newLayer * 0.24), (int)(newLayer * 0.24));
+                if (tilemap.HasTile(tilemap.WorldToCell(mousePointInWorld - layerVector)))
+                {
+                    tallestLayer = tilemap.name + tilemap.WorldToCell(mousePointInWorld - layerVector);
+                    transform.position = tilemap.GetCellCenterWorld(tilemap.WorldToCell(mousePointInWorld - layerVector));
+                    playerSprite.sortingOrder = newLayer + 1;
                     break;
                 }
             }
