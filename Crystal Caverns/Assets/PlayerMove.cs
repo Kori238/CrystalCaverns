@@ -8,7 +8,7 @@ public class PlayerMove : MonoBehaviour
 {
     [SerializeField] private List<Tilemap> tilemaps;
     [SerializeField] private SpriteRenderer playerSprite;
-    Vector2 layerMultiplier = new Vector2(0, 0.6f);
+    Vector2 layerMultiplier = new Vector2(0, 0.675f);
 
     // Start is called before the first frame update
     void Start()
