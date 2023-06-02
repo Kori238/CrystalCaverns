@@ -37,6 +37,9 @@ public class PlayerMove : MonoBehaviour
                 {
                     tallestLayer = tilemap.name + tilemap.WorldToCell(mousePointInWorld - layerVector);
                     transform.position = tilemap.GetCellCenterWorld(tilemap.WorldToCell(mousePointInWorld - layerVector));
+                    BaseTileRules tile =
+                        tilemap.GetTile<BaseTileRules>(tilemap.WorldToCell(mousePointInWorld - layerVector));
+                    Debug.Log(tile.tileType);
                     playerSprite.sortingOrder = newLayer + 1;
                     break;
                 }
