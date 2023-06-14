@@ -16,6 +16,6 @@ MonoBehaviour:
   m_DefaultGameObject: {fileID: 0}
   m_DefaultColliderType: 1
   m_TilingRules: []
-  customField: 0
-  testint: 0
+  walkable: 1
+  testint: 28
   tileType: 0

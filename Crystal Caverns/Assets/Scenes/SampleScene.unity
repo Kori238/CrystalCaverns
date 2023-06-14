@@ -838,7 +838,7 @@ GameObject:
   m_Component:
   - component: {fileID: 691317879}
   - component: {fileID: 691317878}
-  - component: {fileID: 691317880}
+  - component: {fileID: 691317881}
   m_Layer: 0
   m_Name: Grid
   m_TagString: Untagged
@@ -876,7 +876,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &691317880
+--- !u!114 &691317881
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -885,13 +885,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 691317877}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172021a643811a440b48730db0d4a6f6, type: 3}
+  m_Script: {fileID: 11500000, guid: 6d6e8ca807e50b44697ad55b5622e69b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tilemaps:
-  - {fileID: 1171097676}
-  - {fileID: 233217962}
-  tileref: {fileID: 11400000, guid: 3b6681c6860508a41ac7caf96feb8751, type: 2}
+  tilemaps: []
 --- !u!1 &1171097673
 GameObject:
   m_ObjectHideFlags: 0
@@ -2007,11 +2004,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e34d45aed7fdbc044836b9c002e73378, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tilemaps:
-  - {fileID: 1171097676}
-  - {fileID: 233217962}
-  - {fileID: 2109054089}
-  playerSprite: {fileID: 599121847}
+  _tilemaps: []
+  _playerSprite: {fileID: 599121847}
+  _gridInitializer: {fileID: 691317881}
 --- !u!1 &2109054086
 GameObject:
   m_ObjectHideFlags: 0

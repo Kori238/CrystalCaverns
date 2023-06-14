@@ -6,14 +6,15 @@ using UnityEngine.Tilemaps;
 
 public class PlayerMove : MonoBehaviour
 {
-    [SerializeField] private List<Tilemap> tilemaps;
-    [SerializeField] private SpriteRenderer playerSprite;
+    [SerializeField] private List<Tilemap> _tilemaps;
+    [SerializeField] private SpriteRenderer _playerSprite;
+    [SerializeField] private GridInitializer _gridInitializer;
     Vector2 layerMultiplier = new Vector2(0, 0.675f);
 
     // Start is called before the first frame update
     void Start()
     {
-        tilemaps.Reverse();
+        _tilemaps.Reverse();
     }
 
     // Update is called once per frame
@@ -24,29 +25,30 @@ public class PlayerMove : MonoBehaviour
             Vector2 mousePointInWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Debug.Log("mouse up");
             
-            string tallestLayer = "none";
-            Tilemap previousTilemap = null;
-            Vector2 previousLayerVector = Vector2.zero;
-            foreach (var tilemap in tilemaps)
+            NodeGrid previousLayer = null;
+            Node previousNode = null;
+            foreach (var layer in _gridInitializer.grids)
             {
-                Int32.TryParse(tilemap.name, out var newLayer);
+                Int32.TryParse(layer.Tilemap.name, out var newLayer);
+                Debug.Log(newLayer);
                 Vector2 layerVector = layerMultiplier * newLayer;
+                Debug.Log((Vector2Int)layer.Tilemap.WorldToCell(mousePointInWorld - layerVector));
+                Node selectedNode =
+                    layer.GetNodeFromCell((Vector2Int)layer.Tilemap.WorldToCell(mousePointInWorld - layerVector));
+                Debug.Log(selectedNode.hasTile);
 
-                if (tilemap.HasTile(tilemap.WorldToCell(mousePointInWorld - layerVector)) 
-                                    && (previousTilemap == null || !previousTilemap.HasTile(tilemap.WorldToCell(mousePointInWorld - layerVector))))
+
+                if (selectedNode.hasTile && (previousLayer == null || !previousNode.hasTile))
                 {
-                    tallestLayer = tilemap.name + tilemap.WorldToCell(mousePointInWorld - layerVector);
-                    transform.position = tilemap.GetCellCenterWorld(tilemap.WorldToCell(mousePointInWorld - layerVector));
-                    BaseTileRules tile =
-                        tilemap.GetTile<BaseTileRules>(tilemap.WorldToCell(mousePointInWorld - layerVector));
-                    Debug.Log(tile.tileType);
-                    playerSprite.sortingOrder = newLayer + 1;
+                    BaseTileRules tile = selectedNode.tile;
+                    if (!tile.walkable) continue;
+                    transform.position = selectedNode.center;
+                    _playerSprite.sortingOrder = newLayer + 1;
                     break;
                 }
-                previousTilemap = tilemap;
-                previousLayerVector = layerVector;
+                previousLayer = layer;
+                previousNode = selectedNode;
             }
-            Debug.Log(tallestLayer);
         }
         
     }

@@ -5,8 +5,8 @@ using UnityEngine.Tilemaps;
 
 [CreateAssetMenu]
 public class BaseTileRules : RuleTile<BaseTileRules.Neighbor> {
-    public bool customField;
-    [SerializeField] private int testint;
+    public bool walkable;
+    public int testint;
     public TileTypes tileType;
 
     public class Neighbor : RuleTile.TilingRule.Neighbor {
@@ -26,6 +26,7 @@ public class BaseTileRules : RuleTile<BaseTileRules.Neighbor> {
     {
         Grass,
         Sand,
-        Stone
+        Stone,
+
     }
 }
