@@ -9,6 +9,7 @@ public sealed class Singleton
     public AStar Pathfinding;
     public List<NodeGrid> Grids;
     public List<Tilemap> Tilemaps;
+    public List<EnemyMove> EnemyMoves = new();
     private Singleton()
     {
         Grids = new List<NodeGrid>();
