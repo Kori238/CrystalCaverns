@@ -25,7 +25,7 @@ public class EnemyMove : MonoBehaviour, IMoveNext
     {
         yield return new WaitForSeconds(0.1f);
         GetPath();
-        if (_path == null) yield break;
+        if (_path == null || _path.nodes.Count <= 1) yield break;
         var node = _path.nodes[_pathIndex];
         transform.position = node.Center;
         _position = new Vector2Int(node.x, node.y);

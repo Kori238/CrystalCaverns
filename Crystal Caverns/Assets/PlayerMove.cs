@@ -34,12 +34,13 @@ public class PlayerMove : MonoBehaviour
 
     private IEnumerator TurnLoop()
     {
-        yield return MoveNext();
+
         if (_path == null)
         {
             yield return new WaitForEndOfFrame();
             yield return TurnLoop();
         }
+        yield return MoveNext();
         foreach (var enemy in Singleton.Instance.EnemyMoves)
         {
             enemy.PlayerPos = _position;
