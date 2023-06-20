@@ -6,7 +6,7 @@ using UnityEngine.Tilemaps;
 [CreateAssetMenu]
 public class BaseTileRules : RuleTile<BaseTileRules.Neighbor> {
     public bool walkable;
-    public int testint;
+    public bool layerTraversable;
     public TileTypes tileType;
 
     public class Neighbor : RuleTile.TilingRule.Neighbor {
