@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UIElements;
@@ -167,7 +168,8 @@ public class AStar
 
             foreach (var adjacents in adjacentsList)
             {
-                foreach (var adjacentNode in adjacents.SameLayer)
+                var allAdjacent = adjacents.SameLayer.Concat(adjacents.LayerTraversalUp).Concat(adjacents.LayerTraversalDown).ToList();
+                foreach (var adjacentNode in allAdjacent)
                 {
                     if (_searchedNodes.Contains(adjacentNode) || !adjacentNode.HasTile) continue;
                     if (!adjacentNode.Tile.walkable)
@@ -238,7 +240,7 @@ public class AStar
         var adj = new Adjacents();
         NodeGrid currentLayer = GetLayer(z);
         NodeGrid layerAbove = null;
-        if (z + 1 <= layersCount) layerAbove = _layers[z + 1];
+        if (z + 2 <= layersCount) layerAbove = _layers[z + 1];
         Tilemap currentTilemap = currentLayer.GetTilemap();
         var cardinals = new List<Vector2Int>
         {
@@ -252,7 +254,7 @@ public class AStar
             new Vector2Int(x - 1, y - 1),
             new Vector2Int(x - 1, y + 1),
             new Vector2Int(x + 1, y - 1),
-            new Vector2Int(x + 1, y + 1),
+            new Vector2Int(x + 1, y + 1)
         };
         foreach (var direction in cardinals)
         {
@@ -282,9 +284,8 @@ public class AStar
 
     public bool HasTileAbove(int x, int y, int z)
     {
-        if (z + 1 > layersCount) return false;
-        if (GetLayer(z + 1).GetTilemap().HasTile(new Vector3Int(x, y))) return true;
-        return false;
+        if (z + 2 > layersCount) return false;
+        return GetLayer(z + 1).GetTilemap().HasTile(new Vector3Int(x, y));
     }
 
     public bool QueryValidTile(int x, int y, int z, NodeGrid layer)
@@ -292,7 +293,7 @@ public class AStar
         if (x > _gridDimensions.x || x < -_gridDimensions.x || y > _gridDimensions.y || y < -_gridDimensions.y ||
             z > layersCount || z < 0 || layer == null) return false;
         Node currentNode = layer.GetNodeFromCell(x, y);
-        if (currentNode.HasTile && !HasTileAbove(x, y, z)) return true;
+        if (currentNode.HasTile && (z > layersCount || !HasTileAbove(x, y, z))) return true;
         return false;
     }
 
