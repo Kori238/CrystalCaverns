@@ -5,19 +5,19 @@ using UnityEngine.Tilemaps;
 
 [CreateAssetMenu]
 public class BaseTileRules : RuleTile<BaseTileRules.Neighbor> {
-    public bool walkable;
-    public bool layerTraversable;
-    public TileTypes tileType;
+    public bool Walkable;
+    public bool LayerTraversable;
+    public TileTypes TileType;
 
     public class Neighbor : RuleTile.TilingRule.Neighbor {
-        public const int Null = 3;
-        public const int NotNull = 4;
+        public const int NULL = 3;
+        public const int NOT_NULL = 4;
     }
 
     public override bool RuleMatch(int neighbor, TileBase tile) {
         switch (neighbor) {
-            case Neighbor.Null: return tile == null;
-            case Neighbor.NotNull: return tile != null;
+            case Neighbor.NULL: return tile == null;
+            case Neighbor.NOT_NULL: return tile != null;
         }
         return base.RuleMatch(neighbor, tile);
     }

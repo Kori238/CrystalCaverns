@@ -4,10 +4,20 @@ using System.Security.Cryptography.X509Certificates;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using static UnityEngine.RuleTile.TilingRuleOutput;
+
+public struct PublicValues
+{
+    public static float CellHeight = 0.625f;
+}
+
+
+
 public sealed class Singleton
 {
+    //public float CELL_HEIGHT = 0.625f;
     public AStar Pathfinding;
     public List<NodeGrid> Grids;
+    public List<NodeGrid> ReversedGrids;
     public List<Tilemap> Tilemaps;
     public List<EnemyMove> EnemyMoves = new();
     private Singleton()
@@ -23,7 +33,9 @@ public sealed class Singleton
             Grids.Add(new NodeGrid(51, 51, i, tilemap));
             i++;
         }
-        //Grids.Reverse();
+
+        ReversedGrids = new List<NodeGrid>(Grids);
+        ReversedGrids.Reverse();
         Pathfinding = new AStar(Grids);
     }
 

@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_DefaultSprite: {fileID: 522711647, guid: 16edcd697d8380744811028d84c4f450, type: 3}
   m_DefaultGameObject: {fileID: 0}
-  m_DefaultColliderType: 1
+  m_DefaultColliderType: 2
   m_TilingRules: []
-  walkable: 1
-  testint: 2
-  tileType: 1
+  Walkable: 1
+  LayerTraversable: 0
+  TileType: 1
