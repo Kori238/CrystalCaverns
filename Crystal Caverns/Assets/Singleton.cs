@@ -10,8 +10,6 @@ public struct PublicValues
     public static float CellHeight = 0.625f;
 }
 
-
-
 public sealed class Singleton
 {
     //public float CELL_HEIGHT = 0.625f;
@@ -20,6 +18,8 @@ public sealed class Singleton
     public List<NodeGrid> ReversedGrids;
     public List<Tilemap> Tilemaps;
     public List<EnemyMove> EnemyMoves = new();
+    public LineOfSight LOS;
+
     private Singleton()
     {
         Grids = new List<NodeGrid>();
@@ -37,6 +37,7 @@ public sealed class Singleton
         ReversedGrids = new List<NodeGrid>(Grids);
         ReversedGrids.Reverse();
         Pathfinding = new AStar(Grids);
+        LOS = new LineOfSight(Grids);
     }
 
     public static Singleton Instance => Nested.Instance;
