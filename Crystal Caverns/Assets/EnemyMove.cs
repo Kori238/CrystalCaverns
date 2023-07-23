@@ -79,7 +79,7 @@ public class EnemyMove : MonoBehaviour, IMoveNext
     public IEnumerator MoveNext()
     {
         yield return new WaitForSeconds(0.1f);
-        bool los = CheckLOS();
+        var los = CheckLOS();
         if (Vector3.Distance(transform.position, PlayerTransform.position) < VIEW_RADIUS && los) GetPath();
         Debug.Log(los);
         if (_path == null || _path.Nodes.Count <= 1)

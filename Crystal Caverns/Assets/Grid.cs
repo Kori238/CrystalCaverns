@@ -196,7 +196,7 @@ public class AStar
         return null;
     }
 
-    private Path CalculatePath(Node endNode)
+    private static Path CalculatePath(Node endNode)
     {
         var path = new Path { FCost = endNode.FCost };
         path.Nodes.Add(endNode);
@@ -210,7 +210,7 @@ public class AStar
         return path;
     }
 
-    private Node FindLowestFCostNode(List<Node> nodeList)
+    private static Node FindLowestFCostNode(List<Node> nodeList)
     {
         var lowestFCostNode = nodeList[0];
         foreach (var node in nodeList)
@@ -237,10 +237,9 @@ public class AStar
     public Adjacents FindAdjacents(int x, int y, int z)
     {
         var adj = new Adjacents();
-        NodeGrid currentLayer = GetLayer(z);
+        var currentLayer = GetLayer(z);
         NodeGrid layerAbove = null;
         if (z + 2 <= _layersCount) layerAbove = _layers[z + 1];
-        Tilemap currentTilemap = currentLayer.GetTilemap();
         var cardinals = new List<Vector2Int>
         {
             new Vector2Int(x - 1, y),
@@ -248,7 +247,7 @@ public class AStar
             new Vector2Int(x, y - 1),
             new Vector2Int(x, y + 1)
         };
-        var diagonals = new List<Vector2Int>()
+        var diagonals = new List<Vector2Int>
         {
             new Vector2Int(x - 1, y - 1),
             new Vector2Int(x - 1, y + 1),
@@ -272,28 +271,24 @@ public class AStar
         }
         foreach (var direction in diagonals)
         {
-            if (QueryValidTile(direction.x, direction.y, z, currentLayer))
-            {
-                if (!currentLayer.GetNodeFromCell(direction.x, direction.y).Tile.LayerTraversable)
-                    adj.SameLayer.Add(currentLayer.GetNodeFromCell(direction.x, direction.y));
-            }
+            if (!QueryValidTile(direction.x, direction.y, z, currentLayer)) continue;
+            if (!currentLayer.GetNodeFromCell(direction.x, direction.y).Tile.LayerTraversable)
+                adj.SameLayer.Add(currentLayer.GetNodeFromCell(direction.x, direction.y));
         }
         return adj;
     }
 
     public bool HasTileAbove(int x, int y, int z)
     {
-        if (z + 2 > _layersCount) return false;
-        return GetLayer(z + 1).GetTilemap().HasTile(new Vector3Int(x, y));
+        return z + 2 <= _layersCount && GetLayer(z + 1).GetTilemap().HasTile(new Vector3Int(x, y));
     }
 
     public bool QueryValidTile(int x, int y, int z, NodeGrid layer)
     {
         if (x > _gridDimensions.x || x < -_gridDimensions.x || y > _gridDimensions.y || y < -_gridDimensions.y ||
             z > _layersCount || z < 0 || layer == null) return false;
-        Node currentNode = layer.GetNodeFromCell(x, y);
-        if (currentNode.HasTile && (z > _layersCount || !HasTileAbove(x, y, z))) return true;
-        return false;
+        var currentNode = layer.GetNodeFromCell(x, y);
+        return currentNode.HasTile && (z > _layersCount || !HasTileAbove(x, y, z));
     }
 
     public int CalculateDistanceCost(Node a, Node b)
