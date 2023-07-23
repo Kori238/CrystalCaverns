@@ -27,13 +27,13 @@ public class LineOfSight
                 Mathf.RoundToInt(currentPos.z));
             if (currentGridPos.z >= grids.Count)
             {
-                Debug.Log($"OB {currentGridPos}");
+                //Debug.Log($"OB {currentGridPos}");
                 currentPos += stepIncrement;
                 continue;
             }
             if (grids[currentGridPos.z].GetNodeFromCell(currentGridPos.x, currentGridPos.y).HasTile)
             {
-                Debug.Log($"false {currentGridPos}");
+                //Debug.Log($"false {currentGridPos}");
                 return false;
             }
             if (i < distance)

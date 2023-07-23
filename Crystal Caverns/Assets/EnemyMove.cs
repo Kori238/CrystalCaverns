@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Xsl;
+using Mono.Cecil;
 using Unity.VisualScripting.Dependencies.NCalc;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class EnemyMove : MonoBehaviour, IMoveNext
@@ -14,6 +16,8 @@ public class EnemyMove : MonoBehaviour, IMoveNext
 
     [SerializeField] private int _eyesLayer, _chestLayer;
     public int PlayerEyesLayer, PlayerChestLayer;
+    [SerializeField] private const int CONFUSION_MAX = 3;
+    [SerializeField] private int _confusion;
     private Path _path;
     private int _pathIndex = 1;
     [SerializeField] private const float VIEW_RADIUS = 1000f;
@@ -35,6 +39,42 @@ public class EnemyMove : MonoBehaviour, IMoveNext
         _sprite.sortingOrder = _layer + 1;
     }
 
+    public IEnumerator MoveRandom()
+    {
+        List<Adjacents> adjacentsList;
+        Node currentNode = Singleton.Instance.Grids[_layer].GetNodeFromCell(_position.x, _position.y);
+        if (currentNode.Tile.LayerTraversable)
+        {
+            adjacentsList =
+                Singleton.Instance.Pathfinding.FindAdjacentsOnLayerTraversalTile(currentNode.X, currentNode.Y,
+                    currentNode.Z);
+        }
+        else
+        {
+            adjacentsList = new List<Adjacents>
+                { Singleton.Instance.Pathfinding.FindAdjacents(currentNode.X, currentNode.Y, currentNode.Z) };
+        }
+        List<Node> possibleNodes = new();
+        foreach (var adjacents in adjacentsList)
+        {
+            var allAdjacent = adjacents.SameLayer.Concat(adjacents.LayerTraversalUp)
+                .Concat(adjacents.LayerTraversalDown).ToList();
+            foreach (var adjacentNode in allAdjacent)
+            {
+                if (adjacentNode.HasTile && adjacentNode.Tile.Walkable && !possibleNodes.Contains(adjacentNode))
+                {
+                    possibleNodes.Add(adjacentNode);
+                }
+            }
+            var nodeIndex = Random.Range(0, possibleNodes.Count);
+            var targetNode = possibleNodes[nodeIndex];
+            transform.position = targetNode.Center;
+            _position = new Vector2Int(targetNode.X, targetNode.Y);
+            _layer = targetNode.Z;
+            _sprite.sortingOrder = _layer + 1;
+        }
+        yield return null;
+    }
 
     public IEnumerator MoveNext()
     {
@@ -42,7 +82,16 @@ public class EnemyMove : MonoBehaviour, IMoveNext
         bool los = CheckLOS();
         if (Vector3.Distance(transform.position, PlayerTransform.position) < VIEW_RADIUS && los) GetPath();
         Debug.Log(los);
-        if (_path == null || _path.Nodes.Count <= 1) yield break;
+        if (_path == null || _path.Nodes.Count <= 1)
+        {
+            if (_confusion > 0)
+            {
+                _confusion--;
+                yield break;
+            }
+            yield return MoveRandom();
+            yield break;
+        }
         var node = _path.Nodes[_pathIndex];
         transform.position = node.Center;
         _position = new Vector2Int(node.X, node.Y);
@@ -50,6 +99,7 @@ public class EnemyMove : MonoBehaviour, IMoveNext
         _sprite.sortingOrder = _layer + 1;
         if (_pathIndex == _path.Nodes.Count - 1)
         {
+            _confusion = CONFUSION_MAX;
             _path = null;
             _pathIndex = 1;
             yield break;
