@@ -18,6 +18,7 @@ public class EnemyMove : MonoBehaviour, IMoveNext
     public int PlayerEyesLayer, PlayerChestLayer;
     [SerializeField] private const int CONFUSION_MAX = 3;
     [SerializeField] private int _confusion;
+    [SerializeField] private float movementSpeed = 1;
     private Path _path;
     private int _pathIndex = 1;
     [SerializeField] private const float VIEW_RADIUS = 1000f;
@@ -68,10 +69,7 @@ public class EnemyMove : MonoBehaviour, IMoveNext
             }
             var nodeIndex = Random.Range(0, possibleNodes.Count);
             var targetNode = possibleNodes[nodeIndex];
-            transform.position = targetNode.Center;
-            _position = new Vector2Int(targetNode.X, targetNode.Y);
-            _layer = targetNode.Z;
-            _sprite.sortingOrder = _layer + 1;
+            yield return MoveToCell(targetNode);
         }
         yield return null;
     }
@@ -93,10 +91,7 @@ public class EnemyMove : MonoBehaviour, IMoveNext
             yield break;
         }
         var node = _path.Nodes[_pathIndex];
-        transform.position = node.Center;
-        _position = new Vector2Int(node.X, node.Y);
-        _layer = node.Z;
-        _sprite.sortingOrder = _layer + 1;
+        yield return MoveToCell(node);
         if (_pathIndex == _path.Nodes.Count - 1)
         {
             _confusion = CONFUSION_MAX;
@@ -106,6 +101,19 @@ public class EnemyMove : MonoBehaviour, IMoveNext
         }
         _pathIndex++;
         yield return null;
+    }
+
+    public IEnumerator MoveToCell(Node node)
+    {
+        var direction = node.Center - transform.position;
+        _position = new Vector2Int(node.X, node.Y);
+        _layer = node.Z;
+        _sprite.sortingOrder = _layer + 1;
+        while (Vector2.Distance(transform.position, node.Center) > 0.01)
+        {
+            transform.position += direction * Time.deltaTime * movementSpeed;
+            yield return new WaitForEndOfFrame();
+        }
     }
 
     public bool CheckLOS()

@@ -602,13 +602,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_Father: {fileID: 1208795476}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &619394800
 GameObject:
@@ -719,7 +719,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &691317877
 GameObject:
@@ -767,7 +767,7 @@ Transform:
   - {fileID: 2109054087}
   - {fileID: 1397264825}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1171097673
 GameObject:
@@ -2756,6 +2756,11 @@ TilemapCollider2D:
   m_Offset: {x: 0, y: 0.4}
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
+--- !u!4 &1208795476 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 769810044347196426, guid: 8f45b86682725c74bb1ded951e6835ce, type: 3}
+  m_PrefabInstance: {fileID: 769810045927150607}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1397264824
 GameObject:
   m_ObjectHideFlags: 0
@@ -3280,7 +3285,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 769810044347196426, guid: 8f45b86682725c74bb1ded951e6835ce, type: 3}
       propertyPath: m_RootOrder
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 769810044347196426, guid: 8f45b86682725c74bb1ded951e6835ce, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3337,7 +3342,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2948264917510121073, guid: adbe7eefceffcb64eba7eab46f7ff136, type: 3}
       propertyPath: m_RootOrder
-      value: 4
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 2948264917510121073, guid: adbe7eefceffcb64eba7eab46f7ff136, type: 3}
       propertyPath: m_LocalPosition.x

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TreeEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class PlayerMove : MonoBehaviour
 {
@@ -13,8 +14,9 @@ public class PlayerMove : MonoBehaviour
     #pragma warning restore CS0649
 
     [SerializeField] private int _eyesLayer, _chestLayer;
-    private Path _path = null;
-    private int _pathIndex = 1;
+    [SerializeField] private Path _path = null;
+    [SerializeField] private int _pathIndex = 1;
+    [SerializeField] private float movementSpeed = 1;
     private Vector2Int _position;
     [SerializeField] private int _currentLayer = 0;
     private static readonly Vector2 LayerMultiplier = new Vector2(0, PublicValues.CellHeight);
@@ -69,11 +71,8 @@ public class PlayerMove : MonoBehaviour
     {
         yield return new WaitForSeconds(0.1f);
         if (_path == null) yield break;
-        var node = _path.Nodes[_pathIndex];       
-        transform.position = node.Center;
-        _position = new Vector2Int(node.X, node.Y);
-        _currentLayer = node.Z;
-        _playerSprite.sortingOrder = _currentLayer + 1;
+        var node = _path.Nodes[_pathIndex];
+        yield return MoveToCell(node);
         if (_pathIndex == _path.Nodes.Count - 1)
         {
             _path = null;
@@ -83,10 +82,24 @@ public class PlayerMove : MonoBehaviour
         _pathIndex++;
     }
 
+    public IEnumerator MoveToCell(Node node)
+    {
+        var direction = node.Center - transform.position;
+        _position = new Vector2Int(node.X, node.Y);
+        _currentLayer = node.Z;
+        _playerSprite.sortingOrder = _currentLayer + 1;
+        while (Vector2.Distance(transform.position, node.Center) > 0.01)
+        {
+            transform.position += direction * Time.deltaTime * movementSpeed;
+            yield return new WaitForEndOfFrame();
+        }
+
+    }
+
+
     private void UpdateCurrentPath()
     {
         Vector2 mousePointInWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Debug.Log("mouse up");
         NodeGrid previousLayer = null;
         Node previousNode = null;
         var currentLayer = Singleton.Instance.Grids[_currentLayer];
