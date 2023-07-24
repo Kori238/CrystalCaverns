@@ -17,7 +17,7 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private Path _path = null;
     [SerializeField] private int _pathIndex = 1;
     [SerializeField] private float movementSpeed = 1;
-    private Vector2Int _position;
+    [SerializeField] private Vector2Int _position;
     [SerializeField] private int _currentLayer = 0;
     private static readonly Vector2 LayerMultiplier = new Vector2(0, PublicValues.CellHeight);
 
@@ -25,6 +25,7 @@ public class PlayerMove : MonoBehaviour
     {
         var tilemap = Singleton.Instance.Grids[_currentLayer].GetTilemap();
         var cell = tilemap.WorldToCell(transform.position);
+        Debug.Log(transform.position);
         transform.position = tilemap.GetCellCenterWorld(cell);
         _position = (Vector2Int)cell;
         StartCoroutine(TurnLoop());
@@ -72,7 +73,8 @@ public class PlayerMove : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         if (_path == null) yield break;
         var node = _path.Nodes[_pathIndex];
-        yield return MoveToCell(node);
+        var previousNode = _path.Nodes[_pathIndex - 1];
+        yield return MoveToCell(node, previousNode);
         if (_pathIndex == _path.Nodes.Count - 1)
         {
             _path = null;
@@ -82,8 +84,10 @@ public class PlayerMove : MonoBehaviour
         _pathIndex++;
     }
 
-    public IEnumerator MoveToCell(Node node)
+    public IEnumerator MoveToCell(Node node, Node previousNode)
     {
+        previousNode.PlayerExitedTile?.Invoke();
+        previousNode.CharacterExitedTile?.Invoke();
         var direction = node.Center - transform.position;
         _position = new Vector2Int(node.X, node.Y);
         _currentLayer = node.Z;
@@ -93,7 +97,8 @@ public class PlayerMove : MonoBehaviour
             transform.position += direction * Time.deltaTime * movementSpeed;
             yield return new WaitForEndOfFrame();
         }
-
+        node.PlayerEnteredTile?.Invoke();
+        node.CharacterEnteredTile?.Invoke();
     }
 
 
@@ -105,6 +110,7 @@ public class PlayerMove : MonoBehaviour
         var currentLayer = Singleton.Instance.Grids[_currentLayer];
         var currentTilemap = currentLayer.GetTilemap();
         var currentPos = currentTilemap.WorldToCell(transform.position);
+        currentPos = (Vector3Int)_position;
         var currentNode = currentLayer.GetNodeFromCell((int)currentPos.x, (int)currentPos.y);
         
         foreach (var layer in Singleton.Instance.ReversedGrids)

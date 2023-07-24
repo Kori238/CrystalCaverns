@@ -54,6 +54,7 @@ public class LineOfSight
 
     private bool HasObstructionPerpendicular(Vector3Int position, Vector3 direction, Vector3 axis)
     {
+        return false;
         // Calculate the two perpendicular directions using 2D rotations.
         var perpendicular1 = Vector3.Cross(direction, axis);
         var perpendicular2 = -perpendicular1;
@@ -61,7 +62,9 @@ public class LineOfSight
         // Sample two points on either side of the current position in each perpendicular direction.
         var sidePoint1 = position + new Vector3Int(Mathf.RoundToInt(perpendicular1.x), Mathf.RoundToInt(perpendicular1.y), Mathf.RoundToInt(perpendicular1.z));
         var sidePoint2 = position + new Vector3Int(Mathf.RoundToInt(perpendicular2.x), Mathf.RoundToInt(perpendicular2.y), Mathf.RoundToInt(perpendicular2.z));
+        var height = grids.Count;
+        Debug.Log(sidePoint1 + " " + sidePoint2);
 
-        return grids[position.z].GetNodeFromCell(sidePoint1.x, sidePoint1.y).HasTile && grids[position.z].GetNodeFromCell(sidePoint2.x, sidePoint2.y).HasTile;
+        return (sidePoint1.z > height || grids[sidePoint1.z].GetNodeFromCell(sidePoint1.x, sidePoint1.y).HasTile) && (sidePoint2.z > height || grids[sidePoint2.z].GetNodeFromCell(sidePoint2.x, sidePoint2.y).HasTile);
     }
 }

@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 using UnityEngine.Tilemaps;
 using UnityEngine.UIElements;
 
@@ -13,6 +15,13 @@ public class Node
     public bool HasTile;
     public Vector3 Center;
     public BaseTileRules Tile;
+
+    public Action PlayerEnteredTile;
+    public Action PlayerExitedTile;
+    public Action CharacterEnteredTile;
+    public Action CharacterExitedTile;
+    public Action EnemyEnteredTile;
+    public Action EnemyExitedTile;
 
     public Node(int x, int y, int z, bool hasTile, Vector3 center, BaseTileRules tile)
     {
