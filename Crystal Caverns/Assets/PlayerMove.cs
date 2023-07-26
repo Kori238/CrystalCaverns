@@ -8,6 +8,8 @@ using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class PlayerMove : MonoBehaviour
 {
+    private GridBasedBehaviours _gridBasedBehaviours;
+
     #pragma warning disable CS0649
     [SerializeField] private SpriteRenderer _playerSprite;
     [SerializeField] private Transform _eyes, _chest, _feet;
@@ -21,10 +23,30 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private int _currentLayer = 0;
     private static readonly Vector2 LayerMultiplier = new Vector2(0, PublicValues.CellHeight);
 
+
+    void Awake()
+    {
+        _gridBasedBehaviours = GameObject.Find("Grid").GetComponent<GridBasedBehaviours>();
+    }
+
     void Start()
     {
-        var tilemap = Singleton.Instance.Grids[_currentLayer].GetTilemap();
-        var cell = tilemap.WorldToCell(transform.position);
+        Tilemap tilemap;
+        Vector3Int cell;
+        var destination = Singleton.Instance.playerPortalDestination;
+
+        if (destination != new Vector3Int(0, 0, 0))
+        {
+            tilemap = _gridBasedBehaviours.Grids[destination.z].GetTilemap();
+            _currentLayer = destination.z;
+            transform.position = tilemap.GetCellCenterWorld(new Vector3Int(destination.x, destination.y, 0));
+            cell = tilemap.WorldToCell(transform.position);
+        }
+        else
+        {
+            tilemap = _gridBasedBehaviours.Grids[_currentLayer].GetTilemap();
+            cell = tilemap.WorldToCell(transform.position);
+        }
         Debug.Log(transform.position);
         transform.position = tilemap.GetCellCenterWorld(cell);
         _position = (Vector2Int)cell;
@@ -52,7 +74,7 @@ public class PlayerMove : MonoBehaviour
             yield return TurnLoop();
         }
         yield return MoveNext();
-        foreach (var enemy in Singleton.Instance.EnemyMoves)
+        foreach (var enemy in _gridBasedBehaviours.EnemyMoves)
         {
             enemy.PlayerPos = _position;
             enemy.PlayerLayer = _currentLayer;
@@ -107,13 +129,13 @@ public class PlayerMove : MonoBehaviour
         Vector2 mousePointInWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         NodeGrid previousLayer = null;
         Node previousNode = null;
-        var currentLayer = Singleton.Instance.Grids[_currentLayer];
+        var currentLayer = _gridBasedBehaviours.Grids[_currentLayer];
         var currentTilemap = currentLayer.GetTilemap();
         var currentPos = currentTilemap.WorldToCell(transform.position);
         currentPos = (Vector3Int)_position;
         var currentNode = currentLayer.GetNodeFromCell((int)currentPos.x, (int)currentPos.y);
         
-        foreach (var layer in Singleton.Instance.ReversedGrids)
+        foreach (var layer in _gridBasedBehaviours.ReversedGrids)
         {
             Tilemap tilemap = layer.GetTilemap();
             int.TryParse(tilemap.name, out var newLayer);
@@ -126,7 +148,7 @@ public class PlayerMove : MonoBehaviour
                 var tile = selectedNode.Tile;
                 if (!tile.Walkable) continue;
                 //Debug.Log($"x:{currentPos.x}, y:{currentPos.y}, z:{_currentLayer}   target x:{selectedNode.X}, y:{selectedNode.Y}, z:{selectedNode.Z}");
-                var path = Singleton.Instance.Pathfinding.FindPath(currentPos.x, currentPos.y, _currentLayer,
+                var path = _gridBasedBehaviours.Pathfinding.FindPath(currentPos.x, currentPos.y, _currentLayer,
                     selectedNode.X, selectedNode.Y, selectedNode.Z);
                 if (path != null)
                 {

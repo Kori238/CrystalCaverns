@@ -14,6 +14,8 @@ public class EnemyMove : MonoBehaviour, IMoveNext
     [SerializeField] private Transform _eyes, _chest, _feet;
     #pragma warning restore CS0649
 
+    private GridBasedBehaviours _gridBasedBehaviours;
+
     [SerializeField] private int _eyesLayer, _chestLayer;
     public int PlayerEyesLayer, PlayerChestLayer;
     [SerializeField] private const int CONFUSION_MAX = 3;
@@ -28,32 +30,40 @@ public class EnemyMove : MonoBehaviour, IMoveNext
     public Vector2Int PlayerPos;
     public int PlayerLayer;
 
+    void Awake()
+    {
+        _gridBasedBehaviours = GameObject.Find("Grid").GetComponent<GridBasedBehaviours>();
+    }
+
     void Start()
     {
-        Singleton.Instance.EnemyMoves.Add(this);
-        var tilemap = Singleton.Instance.Grids[_layer].GetTilemap();
+        Invoke("AddSelfToSingleton", Time.fixedDeltaTime);
+        var tilemap = _gridBasedBehaviours.Grids[_layer].GetTilemap();
         var cell = tilemap.WorldToCell(transform.position);
         transform.position = tilemap.GetCellCenterWorld(cell);
         _position = (Vector2Int)cell;
-        //_chestLayer = Mathf.RoundToInt((_chest.position - _feet.position / PublicValues.CellHeight).y);
-        //_eyesLayer = Mathf.RoundToInt((_eyes.position - _feet.position / PublicValues.CellHeight).y);
         _sprite.sortingOrder = _layer + 1;
+    }
+
+    public void AddSelfToSingleton()
+    {
+        _gridBasedBehaviours.EnemyMoves.Add(this);
     }
 
     public IEnumerator MoveRandom()
     {
         List<Adjacents> adjacentsList;
-        Node currentNode = Singleton.Instance.Grids[_layer].GetNodeFromCell(_position.x, _position.y);
+        Node currentNode = _gridBasedBehaviours.Grids[_layer].GetNodeFromCell(_position.x, _position.y);
         if (currentNode.Tile.LayerTraversable)
         {
             adjacentsList =
-                Singleton.Instance.Pathfinding.FindAdjacentsOnLayerTraversalTile(currentNode.X, currentNode.Y,
+                _gridBasedBehaviours.Pathfinding.FindAdjacentsOnLayerTraversalTile(currentNode.X, currentNode.Y,
                     currentNode.Z);
         }
         else
         {
             adjacentsList = new List<Adjacents>
-                { Singleton.Instance.Pathfinding.FindAdjacents(currentNode.X, currentNode.Y, currentNode.Z) };
+                { _gridBasedBehaviours.Pathfinding.FindAdjacents(currentNode.X, currentNode.Y, currentNode.Z) };
         }
         List<Node> possibleNodes = new();
         foreach (var adjacents in adjacentsList)
@@ -118,13 +128,13 @@ public class EnemyMove : MonoBehaviour, IMoveNext
 
     public bool CheckLOS()
     {
-        return Singleton.Instance.LOS.HasLineOfSight(_position.x, _position.y, _eyesLayer + _layer, PlayerPos.x, PlayerPos.y, PlayerLayer + 1);
+        return _gridBasedBehaviours.LOS.HasLineOfSight(_position.x, _position.y, _eyesLayer + _layer, PlayerPos.x, PlayerPos.y, PlayerLayer + 1);
         //return false;
     }
 
     public void GetPath()
     {
-        var path = Singleton.Instance.Pathfinding.FindPath(_position.x, _position.y, _layer, PlayerPos.x, PlayerPos.y, PlayerLayer);
+        var path = _gridBasedBehaviours.Pathfinding.FindPath(_position.x, _position.y, _layer, PlayerPos.x, PlayerPos.y, PlayerLayer);
         if (path == null) return;
         _path = path;
         _pathIndex = 1;
