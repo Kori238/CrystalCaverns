@@ -258,7 +258,7 @@ MonoBehaviour:
   _eyesLayer: 0
   _chestLayer: 0
   _pathIndex: 1
-  movementSpeed: 1
+  movementSpeed: 2
   _position: {x: 0, y: 0}
   _currentLayer: 0
 --- !u!1 &4848730020632697255

@@ -48,11 +48,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2920ca657a815c24a973a83d5d3c4ad9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _viewLayers: 0100000002000000
   _sprite: {fileID: 3347166227127342703}
   _eyes: {fileID: 1381611995867368508}
   _chest: {fileID: 8287300494450180103}
   _feet: {fileID: 1578322831147776947}
+  _eyesLayer: 0
+  _chestLayer: 0
+  PlayerEyesLayer: 0
+  PlayerChestLayer: 0
+  _confusion: 0
+  movementSpeed: 2
   _layer: 0
   PlayerTransform: {fileID: 0}
   PlayerChest: {fileID: 0}

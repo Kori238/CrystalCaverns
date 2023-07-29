@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using TreeEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -50,10 +52,12 @@ public class PlayerMove : MonoBehaviour
         Debug.Log(transform.position);
         transform.position = tilemap.GetCellCenterWorld(cell);
         _position = (Vector2Int)cell;
-        StartCoroutine(TurnLoop());
         _chestLayer = Mathf.RoundToInt((_chest.position - _feet.position / PublicValues.CellHeight).y);
         _eyesLayer = Mathf.RoundToInt((_eyes.position - _feet.position / PublicValues.CellHeight).y);
         _playerSprite.sortingOrder = _currentLayer + 1;
+#pragma warning disable CS4014
+        TurnLoop();
+#pragma warning restore CS4014
     }
 
     void Update()
@@ -65,48 +69,50 @@ public class PlayerMove : MonoBehaviour
         
     }
 
-    private IEnumerator TurnLoop()
+    private async Task TurnLoop()
     {
+        while (true)
+        {
+            if (_path == null)
+            {
+                await Task.Yield();
+                continue;
+            }
 
-        if (_path == null)
-        {
-            yield return new WaitForEndOfFrame();
-            yield return TurnLoop();
+            await MoveNext();
+            foreach (var enemy in _gridBasedBehaviours.EnemyMoves)
+            {
+                enemy.PlayerPos = _position;
+                enemy.PlayerLayer = _currentLayer;
+                enemy.PlayerTransform = transform;
+                enemy.PlayerChest = _chest;
+                enemy.PlayerEyes = _eyes;
+                enemy.PlayerFeet = _feet;
+                enemy.PlayerEyesLayer = _eyesLayer;
+                enemy.PlayerChestLayer = _chestLayer;
+                await enemy.MoveNext();
+            }
+            await Task.Delay(100);
         }
-        yield return MoveNext();
-        foreach (var enemy in _gridBasedBehaviours.EnemyMoves)
-        {
-            enemy.PlayerPos = _position;
-            enemy.PlayerLayer = _currentLayer;
-            enemy.PlayerTransform = transform;
-            enemy.PlayerChest = _chest;
-            enemy.PlayerEyes = _eyes;
-            enemy.PlayerFeet = _feet;
-            enemy.PlayerEyesLayer = _eyesLayer;
-            enemy.PlayerChestLayer = _chestLayer;
-            yield return enemy.MoveNext(); 
-        }
-        yield return new WaitForSeconds(0.1f);
-        yield return TurnLoop();
     }
 
-    private IEnumerator MoveNext()
+    private async Task MoveNext()
     {
-        yield return new WaitForSeconds(0.1f);
-        if (_path == null) yield break;
+        await Task.Delay(100);
+        if (_path == null) return;
         var node = _path.Nodes[_pathIndex];
         var previousNode = _path.Nodes[_pathIndex - 1];
-        yield return MoveToCell(node, previousNode);
+        await MoveToCell(node, previousNode);
         if (_pathIndex == _path.Nodes.Count - 1)
         {
             _path = null;
             _pathIndex = 1;
-            yield break;
+            return;
         }
         _pathIndex++;
     }
 
-    public IEnumerator MoveToCell(Node node, Node previousNode)
+    public async Task MoveToCell(Node node, Node previousNode)
     {
         previousNode.PlayerExitedTile?.Invoke();
         previousNode.CharacterExitedTile?.Invoke();
@@ -117,7 +123,7 @@ public class PlayerMove : MonoBehaviour
         while (Vector2.Distance(transform.position, node.Center) > 0.01)
         {
             transform.position += direction * Time.deltaTime * movementSpeed;
-            yield return new WaitForEndOfFrame();
+            await Task.Yield();
         }
         node.PlayerEnteredTile?.Invoke();
         node.CharacterEnteredTile?.Invoke();

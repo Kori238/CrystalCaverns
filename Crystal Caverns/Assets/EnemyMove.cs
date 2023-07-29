@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Xsl;
 using Mono.Cecil;
 using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-public class EnemyMove : MonoBehaviour, IMoveNext
+public class EnemyMove : MonoBehaviour
 {
     #pragma warning disable CS0649
     [SerializeField] private SpriteRenderer _sprite;
@@ -50,7 +51,7 @@ public class EnemyMove : MonoBehaviour, IMoveNext
         _gridBasedBehaviours.EnemyMoves.Add(this);
     }
 
-    public IEnumerator MoveRandom()
+    public async Task MoveRandom()
     {
         List<Adjacents> adjacentsList;
         Node currentNode = _gridBasedBehaviours.Grids[_layer].GetNodeFromCell(_position.x, _position.y);
@@ -79,14 +80,13 @@ public class EnemyMove : MonoBehaviour, IMoveNext
             }
             var nodeIndex = Random.Range(0, possibleNodes.Count);
             var targetNode = possibleNodes[nodeIndex];
-            yield return MoveToCell(targetNode);
+            await MoveToCell(targetNode);
         }
-        yield return null;
     }
 
-    public IEnumerator MoveNext()
+    public async Task MoveNext()
     {
-        yield return new WaitForSeconds(0.1f);
+        await Task.Delay(100);
         var los = CheckLOS();
         if (Vector3.Distance(transform.position, PlayerTransform.position) < VIEW_RADIUS && los) GetPath();
         Debug.Log(los);
@@ -95,25 +95,24 @@ public class EnemyMove : MonoBehaviour, IMoveNext
             if (_confusion > 0)
             {
                 _confusion--;
-                yield break;
-            }
-            yield return MoveRandom();
-            yield break;
+                return;
+            } 
+            await MoveRandom();
+            return;
         }
         var node = _path.Nodes[_pathIndex];
-        yield return MoveToCell(node);
+        await MoveToCell(node);
         if (_pathIndex == _path.Nodes.Count - 1)
         {
             _confusion = CONFUSION_MAX;
             _path = null;
             _pathIndex = 1;
-            yield break;
+            return;
         }
         _pathIndex++;
-        yield return null;
     }
 
-    public IEnumerator MoveToCell(Node node)
+    public async Task MoveToCell(Node node)
     {
         var direction = node.Center - transform.position;
         _position = new Vector2Int(node.X, node.Y);
@@ -122,7 +121,7 @@ public class EnemyMove : MonoBehaviour, IMoveNext
         while (Vector2.Distance(transform.position, node.Center) > 0.01)
         {
             transform.position += direction * Time.deltaTime * movementSpeed;
-            yield return new WaitForEndOfFrame();
+            await Task.Yield();
         }
     }
 
