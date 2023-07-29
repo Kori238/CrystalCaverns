@@ -49,7 +49,6 @@ public class PlayerMove : MonoBehaviour
             tilemap = _gridBasedBehaviours.Grids[_currentLayer].GetTilemap();
             cell = tilemap.WorldToCell(transform.position);
         }
-        Debug.Log(transform.position);
         transform.position = tilemap.GetCellCenterWorld(cell);
         _position = (Vector2Int)cell;
         _chestLayer = Mathf.RoundToInt((_chest.position - _feet.position / PublicValues.CellHeight).y);
@@ -80,6 +79,7 @@ public class PlayerMove : MonoBehaviour
             }
 
             await MoveNext();
+            List<Task> enemiesTurns = new();
             foreach (var enemy in _gridBasedBehaviours.EnemyMoves)
             {
                 enemy.PlayerPos = _position;
@@ -90,9 +90,10 @@ public class PlayerMove : MonoBehaviour
                 enemy.PlayerFeet = _feet;
                 enemy.PlayerEyesLayer = _eyesLayer;
                 enemy.PlayerChestLayer = _chestLayer;
-                await enemy.MoveNext();
+                enemiesTurns.Add(enemy.MoveNext());
             }
-            await Task.Delay(100);
+            await Task.WhenAll(enemiesTurns);
+            //await Task.Delay(100);
         }
     }
 
@@ -136,9 +137,7 @@ public class PlayerMove : MonoBehaviour
         NodeGrid previousLayer = null;
         Node previousNode = null;
         var currentLayer = _gridBasedBehaviours.Grids[_currentLayer];
-        var currentTilemap = currentLayer.GetTilemap();
-        var currentPos = currentTilemap.WorldToCell(transform.position);
-        currentPos = (Vector3Int)_position;
+        var currentPos = (Vector3Int)_position;
         var currentNode = currentLayer.GetNodeFromCell((int)currentPos.x, (int)currentPos.y);
         
         foreach (var layer in _gridBasedBehaviours.ReversedGrids)

@@ -21,11 +21,11 @@ public class EnemyMove : MonoBehaviour
     public int PlayerEyesLayer, PlayerChestLayer;
     [SerializeField] private const int CONFUSION_MAX = 3;
     [SerializeField] private int _confusion;
-    [SerializeField] private float movementSpeed = 1;
+    [SerializeField] private float _movementSpeed = 1;
     private Path _path;
     private int _pathIndex = 1;
     [SerializeField] private const float VIEW_RADIUS = 1000f;
-    private Vector2Int _position = new();
+    private Vector2Int _position;
     [SerializeField] private int _layer = 0;
     public Transform PlayerTransform, PlayerChest, PlayerEyes, PlayerFeet;
     public Vector2Int PlayerPos;
@@ -89,7 +89,6 @@ public class EnemyMove : MonoBehaviour
         await Task.Delay(100);
         var los = CheckLOS();
         if (Vector3.Distance(transform.position, PlayerTransform.position) < VIEW_RADIUS && los) GetPath();
-        Debug.Log(los);
         if (_path == null || _path.Nodes.Count <= 1)
         {
             if (_confusion > 0)
@@ -120,7 +119,7 @@ public class EnemyMove : MonoBehaviour
         _sprite.sortingOrder = _layer + 1;
         while (Vector2.Distance(transform.position, node.Center) > 0.01)
         {
-            transform.position += direction * Time.deltaTime * movementSpeed;
+            transform.position += direction * Time.deltaTime * _movementSpeed;
             await Task.Yield();
         }
     }
@@ -128,7 +127,6 @@ public class EnemyMove : MonoBehaviour
     public bool CheckLOS()
     {
         return _gridBasedBehaviours.LOS.HasLineOfSight(_position.x, _position.y, _eyesLayer + _layer, PlayerPos.x, PlayerPos.y, PlayerLayer + 1);
-        //return false;
     }
 
     public void GetPath()

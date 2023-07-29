@@ -52,12 +52,12 @@ MonoBehaviour:
   _eyes: {fileID: 1381611995867368508}
   _chest: {fileID: 8287300494450180103}
   _feet: {fileID: 1578322831147776947}
-  _eyesLayer: 0
-  _chestLayer: 0
+  _eyesLayer: 1
+  _chestLayer: 1
   PlayerEyesLayer: 0
   PlayerChestLayer: 0
   _confusion: 0
-  movementSpeed: 2
+  _movementSpeed: 2
   _layer: 0
   PlayerTransform: {fileID: 0}
   PlayerChest: {fileID: 0}
