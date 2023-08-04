@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Portal : MonoBehaviour
 {
     private GridBasedBehaviours _gridBasedBehaviours;
+    private GameObject _loadingScreen;
     [SerializeField] private int _currentLayer = 0;
     [SerializeField] private Vector2Int pos;
     [SerializeField] private SceneNames sceneName;
@@ -14,6 +17,7 @@ public class Portal : MonoBehaviour
     void Awake()
     {
         _gridBasedBehaviours = GameObject.Find("Grid").GetComponent<GridBasedBehaviours>();
+        _loadingScreen = GameObject.Find("LoadingScreen");
     }
 
     public enum SceneNames
@@ -54,8 +58,39 @@ public class Portal : MonoBehaviour
             Debug.Log("WARNING: portal destination may not be set");
         }
         Singleton.Instance.playerPortalDestination = playerDestination;
-        SceneManager.LoadScene(sceneName.ToString());
+        ChangeScene(sceneName);
     }
 
-    
+    private async void ChangeScene(SceneNames name)
+    {
+        var scene = SceneManager.LoadSceneAsync(sceneName.ToString());
+        scene.allowSceneActivation = false;
+
+        _loadingScreen.SetActive(true);
+        var loadingScreenBackground = _loadingScreen.transform.GetChild(0).GetComponent<Image>();
+        var alpha = 0f;
+
+        while (alpha < 1f)
+        {
+            alpha += 2f * Time.deltaTime;
+            loadingScreenBackground.color = new Color(0f, 0f, 0f, alpha);
+            await Task.Yield();
+        }
+
+        do
+        {
+
+        } while (scene.progress < 0.9f);
+
+        scene.allowSceneActivation = true;
+
+        while (alpha > 0f)
+        {
+            alpha -= 2f * Time.deltaTime;
+            loadingScreenBackground.color = new Color(0f, 0f, 0f, alpha);
+            await Task.Yield();
+        }
+
+        _loadingScreen.SetActive(false);
+    }
 }
