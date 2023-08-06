@@ -39,7 +39,7 @@ public class EnemyMove : MonoBehaviour
     void Start()
     {
         Invoke("AddSelfToSingleton", Time.fixedDeltaTime);
-        var tilemap = _gridBasedBehaviours.Grids[_layer].GetTilemap();
+        var tilemap = _gridBasedBehaviours.Tilemaps[_layer];
         var cell = tilemap.WorldToCell(transform.position);
         transform.position = tilemap.GetCellCenterWorld(cell);
         _position = (Vector2Int)cell;
@@ -55,7 +55,8 @@ public class EnemyMove : MonoBehaviour
     {
         List<Adjacents> adjacentsList;
         Node currentNode = _gridBasedBehaviours.Grids[_layer].GetNodeFromCell(_position.x, _position.y);
-        if (currentNode.Tile.LayerTraversable)
+        var dict = Singleton.Instance.TileDictionary;
+        if (dict.GetValueOrDefault(currentNode.TileName).LayerTraversable)
         {
             adjacentsList =
                 _gridBasedBehaviours.Pathfinding.FindAdjacentsOnLayerTraversalTile(currentNode.X, currentNode.Y,
@@ -73,7 +74,7 @@ public class EnemyMove : MonoBehaviour
                 .Concat(adjacents.LayerTraversalDown).ToList();
             foreach (var adjacentNode in allAdjacent)
             {
-                if (adjacentNode.HasTile && adjacentNode.Tile.Walkable && !possibleNodes.Contains(adjacentNode))
+                if (adjacentNode.HasTile && dict.GetValueOrDefault(adjacentNode.TileName).Walkable && !possibleNodes.Contains(adjacentNode))
                 {
                     possibleNodes.Add(adjacentNode);
                 }

@@ -23,12 +23,12 @@ public class Portal : MonoBehaviour
     public enum SceneNames
     {
         None,
-        SampleScene,
-        CoolScene,
+        ExampleRoom1,
+        ExampleRoom2,
     }
     void Start()
     {
-        var tilemap = _gridBasedBehaviours.Grids[_currentLayer].GetTilemap();
+        var tilemap = _gridBasedBehaviours.Tilemaps[_currentLayer];
         var cell = tilemap.WorldToCell(transform.position);
         Debug.Log(transform.position);
         transform.position = tilemap.GetCellCenterWorld(cell);

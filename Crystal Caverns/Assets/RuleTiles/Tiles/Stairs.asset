@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Stairs
   m_EditorClassIdentifier: 
   m_DefaultSprite: {fileID: -1930587031, guid: 16edcd697d8380744811028d84c4f450, type: 3}
-  m_DefaultGameObject: {fileID: 0}
+  m_DefaultGameObject: {fileID: 217421096183077938, guid: ea1794d4387bd344d8af444df7f0ac58, type: 3}
   m_DefaultColliderType: 2
   m_TilingRules: []
   Walkable: 1
+  Name: Stairs
   LayerTraversable: 1
   TileType: 2

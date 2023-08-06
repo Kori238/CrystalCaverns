@@ -39,14 +39,14 @@ public class PlayerMove : MonoBehaviour
 
         if (destination != new Vector3Int(0, 0, 0))
         {
-            tilemap = _gridBasedBehaviours.Grids[destination.z].GetTilemap();
+            tilemap = _gridBasedBehaviours.Tilemaps[destination.z];
             _currentLayer = destination.z;
             transform.position = tilemap.GetCellCenterWorld(new Vector3Int(destination.x, destination.y, 0));
             cell = tilemap.WorldToCell(transform.position);
         }
         else
         {
-            tilemap = _gridBasedBehaviours.Grids[_currentLayer].GetTilemap();
+            tilemap = _gridBasedBehaviours.Tilemaps[_currentLayer];
             cell = tilemap.WorldToCell(transform.position);
         }
         transform.position = tilemap.GetCellCenterWorld(cell);
@@ -142,7 +142,7 @@ public class PlayerMove : MonoBehaviour
         
         foreach (var layer in _gridBasedBehaviours.ReversedGrids)
         {
-            Tilemap tilemap = layer.GetTilemap();
+            Tilemap tilemap = _gridBasedBehaviours.Tilemaps[layer.Layer];
             int.TryParse(tilemap.name, out var newLayer);
             var layerVector = LayerMultiplier * newLayer;
             var cellPos = tilemap.WorldToCell(mousePointInWorld - layerVector);
@@ -150,7 +150,8 @@ public class PlayerMove : MonoBehaviour
             if (selectedNode == currentNode) return;
             if (selectedNode.HasTile && (previousLayer == null || !previousNode.HasTile))
             {
-                var tile = selectedNode.Tile;
+                var dict = Singleton.Instance.TileDictionary;
+                var tile = dict.GetValueOrDefault(selectedNode.TileName);
                 if (!tile.Walkable) continue;
                 //Debug.Log($"x:{currentPos.x}, y:{currentPos.y}, z:{_currentLayer}   target x:{selectedNode.X}, y:{selectedNode.Y}, z:{selectedNode.Z}");
                 var path = _gridBasedBehaviours.Pathfinding.FindPath(currentPos.x, currentPos.y, _currentLayer,

@@ -6,6 +6,7 @@ using UnityEngine.Tilemaps;
 [CreateAssetMenu]
 public class BaseTileRules : RuleTile<BaseTileRules.Neighbor> {
     public bool Walkable;
+    public string Name;
     public bool LayerTraversable;
     public TileTypes TileType;
 
@@ -27,6 +28,5 @@ public class BaseTileRules : RuleTile<BaseTileRules.Neighbor> {
         Grass,
         Sand,
         Stone,
-
     }
 }

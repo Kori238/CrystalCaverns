@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 using UnityEngine.Tilemaps;
@@ -14,21 +15,31 @@ public class Node
     public Node PreviousNode;
     public bool HasTile;
     public Vector3 Center;
-    public BaseTileRules Tile;
+    public string TileName;
 
+    [JsonIgnore]
     public Action PlayerEnteredTile;
+    [JsonIgnore]
     public Action PlayerExitedTile;
+    [JsonIgnore]
     public Action CharacterEnteredTile;
+    [JsonIgnore]
     public Action CharacterExitedTile;
+    [JsonIgnore]
     public Action EnemyEnteredTile;
+    [JsonIgnore]
     public Action EnemyExitedTile;
 
     public Node(int x, int y, int z, bool hasTile, Vector3 center, BaseTileRules tile)
     {
+        //var dict = Singleton.Instance.TileDictionary;
         this.X = x; this.Y = y; this.Z = z;
         this.HasTile = hasTile;
         this.Center = center;
-        this.Tile = tile;
+        if (tile != null)
+        {
+            this.TileName = tile.Name;
+        }
     }
 
     public void UpdateFCost()
@@ -41,16 +52,23 @@ public class NodeGrid
 {
     public readonly int Width, Height, Layer;
     private readonly Tilemap _tilemap;
-    private readonly Node[,] _grid;
+    public readonly Node[,] _grid;
+
+    [JsonConstructor]
+    public NodeGrid(int width, int height, int layer, Node[,] _grid)
+    {
+        Width = width; Height = height; Layer = layer;
+        Debug.Log(_grid);
+        this._grid = _grid;
+    }
 
     public NodeGrid(int width, int height, int layer, Tilemap tilemap)
     {
         Width = width;
         Height = height;
         Layer = layer;
-        _tilemap = tilemap;
-
         _grid = new Node[width, height];
+
         for (var x = 0; x < _grid.GetLength(0); x++)
         {
             for (var y = 0; y < _grid.GetLength(1); y++)
@@ -62,7 +80,6 @@ public class NodeGrid
         }
     }
 
-    public Tilemap GetTilemap() { return _tilemap; }
     public Node[,] GetGrid() { return _grid; }
 
     public Node GetNodeFromCell(int x, int y)
@@ -163,7 +180,8 @@ public class AStar
 
             List<Adjacents> adjacentsList;
 
-            if (currentNode.Tile.LayerTraversable)
+            var dict = Singleton.Instance.TileDictionary;
+            if (dict.GetValueOrDefault(currentNode.TileName).LayerTraversable)
             {
                 adjacentsList = 
                     FindAdjacentsOnLayerTraversalTile(currentNode.X, currentNode.Y, currentNode.Z);
@@ -180,7 +198,7 @@ public class AStar
                 foreach (var adjacentNode in allAdjacent)
                 {
                     if (_searchedNodes.Contains(adjacentNode) || !adjacentNode.HasTile) continue;
-                    if (!adjacentNode.Tile.Walkable)
+                    if (!dict.GetValueOrDefault(adjacentNode.TileName).Walkable)
                     {
                         _searchedNodes.Add(adjacentNode);
                         continue;
@@ -263,25 +281,26 @@ public class AStar
             new Vector2Int(x + 1, y - 1),
             new Vector2Int(x + 1, y + 1)
         };
+        var dict = Singleton.Instance.TileDictionary;
         foreach (var direction in cardinals)
         {
             if (QueryValidTile(direction.x, direction.y, z, currentLayer))
             {
-                if (currentLayer.GetNodeFromCell(direction.x, direction.y).Tile.LayerTraversable)
+                if (dict.GetValueOrDefault(currentLayer.GetNodeFromCell(direction.x, direction.y).TileName).LayerTraversable)
                     adj.LayerTraversalDown.Add(currentLayer.GetNodeFromCell(direction.x, direction.y));
                 else adj.SameLayer.Add(currentLayer.GetNodeFromCell(direction.x, direction.y));
             }
 
             if (QueryValidTile(direction.x, direction.y, z + 1, layerAbove))
             {
-                if (layerAbove.GetNodeFromCell(direction.x, direction.y).Tile.LayerTraversable) 
+                if (dict.GetValueOrDefault(layerAbove.GetNodeFromCell(direction.x, direction.y).TileName).LayerTraversable) 
                     adj.LayerTraversalUp.Add(layerAbove.GetNodeFromCell(direction.x, direction.y));
             }
         }
         foreach (var direction in diagonals)
         {
             if (!QueryValidTile(direction.x, direction.y, z, currentLayer)) continue;
-            if (!currentLayer.GetNodeFromCell(direction.x, direction.y).Tile.LayerTraversable)
+            if (!dict.GetValueOrDefault(currentLayer.GetNodeFromCell(direction.x, direction.y).TileName).LayerTraversable)
                 adj.SameLayer.Add(currentLayer.GetNodeFromCell(direction.x, direction.y));
         }
         return adj;
@@ -289,7 +308,7 @@ public class AStar
 
     public bool HasTileAbove(int x, int y, int z)
     {
-        return z + 2 <= _layersCount && GetLayer(z + 1).GetTilemap().HasTile(new Vector3Int(x, y));
+        return z + 2 <= _layersCount && GetLayer(z + 1).GetNodeFromCell(x, y).HasTile;
     }
 
     public bool QueryValidTile(int x, int y, int z, NodeGrid layer)

@@ -1,7 +1,11 @@
+using System;
+using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public sealed class GridBasedBehaviours : MonoBehaviour
 {
@@ -31,4 +35,27 @@ public sealed class GridBasedBehaviours : MonoBehaviour
         Pathfinding = new AStar(Grids);
         LOS = new LineOfSight(Grids);
     }
+
+    public void SaveGrid()
+    {
+        var serialized = JsonConvert.SerializeObject(Grids[0], Formatting.Indented,
+            new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
+        Debug.Log(serialized);
+        Grids[0] = JsonConvert.DeserializeObject<NodeGrid>(serialized);
+        Debug.Log(JsonConvert.SerializeObject(Grids[0], Formatting.Indented, new JsonSerializerSettings()
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+        }));
+        Debug.Log(Grids[0]);
+        //Debug.Log(deserialized._grid[20, 20].HasTile);
+    }
+
+    public void UnwrapTilemapFromGrid(List<NodeGrid> wrappedGrids)
+    {
+
+    }
 }
+
