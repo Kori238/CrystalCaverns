@@ -7,13 +7,21 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using static UnityEditor.Experimental.GraphView.GraphView;
 
+public class GridChildren
+{
+    public List<Portal> portals = new();
+    public List<EnemyMove> enemyMoves = new();
+}
+
 public sealed class GridBasedBehaviours : MonoBehaviour
 {
     public AStar Pathfinding;
     public List<NodeGrid> Grids;
     public List<NodeGrid> ReversedGrids;
     public List<Tilemap> Tilemaps;
+    public List<ISaveable> SavableItems = new();
     public List<EnemyMove> EnemyMoves = new();
+    public GridChildren GridChildren = new();
     public LineOfSight LOS;
 
     public void Awake()
@@ -38,18 +46,50 @@ public sealed class GridBasedBehaviours : MonoBehaviour
 
     public void SaveGrid()
     {
-        var serialized = JsonConvert.SerializeObject(Grids[0], Formatting.Indented,
-            new JsonSerializerSettings()
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            });
-        Debug.Log(serialized);
-        Grids[0] = JsonConvert.DeserializeObject<NodeGrid>(serialized);
-        Debug.Log(JsonConvert.SerializeObject(Grids[0], Formatting.Indented, new JsonSerializerSettings()
+        var settings = new JsonSerializerSettings()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-        }));
-        Debug.Log(Grids[0]);
+        };
+
+        List<WrappedPortal> SavedItems = new();
+        foreach (var item in GridChildren.portals)
+        {
+            var savedItem = item.Save();
+            SavedItems.Add(savedItem as WrappedPortal);
+        }
+        var serializedSavable = JsonConvert.SerializeObject(SavedItems, Formatting.Indented, settings);
+        Debug.Log(serializedSavable);
+        var deserializedSavable = JsonConvert.DeserializeObject<List<WrappedPortal>>(serializedSavable);
+        Debug.Log(deserializedSavable);
+        foreach (var item in deserializedSavable)
+        {
+            item.LoadPrefab();
+        }
+
+        var SavedEnemies = new List<WrappedEnemy>();
+        foreach (var item in GridChildren.enemyMoves)
+        {
+            var savedItem = item.Save();
+            SavedEnemies.Add(savedItem as WrappedEnemy);
+            Destroy(item.gameObject);
+        }
+        var serializedSavableEnemies = JsonConvert.SerializeObject(SavedEnemies, Formatting.Indented, settings);
+        Debug.Log(serializedSavableEnemies);
+        var deserializedSavableEnemies = JsonConvert.DeserializeObject<List<WrappedEnemy>>(serializedSavableEnemies);
+        Debug.Log(deserializedSavableEnemies);
+        foreach (var item in deserializedSavableEnemies)
+        {
+            item.LoadPrefab();
+        }
+
+        Debug.Log(serializedSavable);
+
+        var serialized = JsonConvert.SerializeObject(Grids, Formatting.Indented, settings);
+        Debug.Log(serialized);
+        Grids = null;
+        Grids = JsonConvert.DeserializeObject<List<NodeGrid>>(serialized);
+        Debug.Log(JsonConvert.SerializeObject(Grids, Formatting.Indented, settings));
+        Debug.Log(Grids);
         //Debug.Log(deserialized._grid[20, 20].HasTile);
     }
 
@@ -59,3 +99,12 @@ public sealed class GridBasedBehaviours : MonoBehaviour
     }
 }
 
+public interface ISaveable
+{
+    public object Save();
+}
+
+public interface IUnwrappable
+{
+    public void LoadPrefab();
+}

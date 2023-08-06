@@ -27,6 +27,7 @@ public class ThisSceneData : MonoBehaviour
     private async void Test()
     {
         var gridBasedBehaviours = GameObject.Find("Grid").GetComponent<GridBasedBehaviours>();
+        await Task.Delay(1000);
         gridBasedBehaviours.SaveGrid();
     }
 }

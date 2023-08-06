@@ -1,18 +1,26 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using UnityEditor.VersionControl;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
+using Task = System.Threading.Tasks.Task;
 
-public class Portal : MonoBehaviour
+public class Portal : MonoBehaviour, ISaveable
 {
     private GridBasedBehaviours _gridBasedBehaviours;
     private GameObject _loadingScreen;
     [SerializeField] private int _currentLayer = 0;
     [SerializeField] private Vector2Int pos;
-    [SerializeField] private SceneNames sceneName;
-    [SerializeField] private Vector3Int playerDestination;
+    [SerializeField] public SceneNames sceneName;
+    [SerializeField] public Vector3Int playerDestination;
 
     void Awake()
     {
@@ -35,6 +43,7 @@ public class Portal : MonoBehaviour
         pos = (Vector2Int)cell;
         var node = _gridBasedBehaviours.Grids[_currentLayer].GetNodeFromCell(pos.x, pos.y);
         node.PlayerEnteredTile += PortalTo;
+        _gridBasedBehaviours.GridChildren.portals.Add(this);
     }
 
 
@@ -92,5 +101,40 @@ public class Portal : MonoBehaviour
         }
 
         _loadingScreen.SetActive(false);
+    }
+
+    public object Save()
+    {
+        return new WrappedPortal(transform, sceneName, playerDestination);
+    }
+}
+
+public class WrappedPortal : IUnwrappable
+{
+    public Vector3 Position;
+    public Portal.SceneNames SceneName;
+    public Vector3Int PlayerDestination;
+
+    [JsonConstructor]
+    public WrappedPortal(Vector3 position, Portal.SceneNames sceneName, Vector3Int playerDestination)
+    {
+        Position = position;
+        SceneName = sceneName;
+        PlayerDestination = playerDestination;
+    }
+
+    public WrappedPortal(Transform transform, Portal.SceneNames sceneName, Vector3Int playerDestination)
+    {
+        Position = transform.position;
+        SceneName = sceneName;
+        PlayerDestination = playerDestination;
+    }
+
+    public void LoadPrefab()
+    {
+        var portal = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/portal.prefab");
+        var instantiated = Object.Instantiate(portal, Position, Quaternion.identity).GetComponent<Portal>();
+        instantiated.sceneName = SceneName;
+        instantiated.playerDestination = PlayerDestination;
     }
 }

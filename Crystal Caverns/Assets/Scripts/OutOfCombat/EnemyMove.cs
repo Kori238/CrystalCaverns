@@ -1,12 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Xsl;
 using Mono.Cecil;
+using Newtonsoft.Json;
+using Unity.VisualScripting;
 using Unity.VisualScripting.Dependencies.NCalc;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using static Portal;
+using UnityEngine.UIElements;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class EnemyMove : MonoBehaviour
 {
@@ -20,13 +27,13 @@ public class EnemyMove : MonoBehaviour
     [SerializeField] private int _eyesLayer, _chestLayer;
     public int PlayerEyesLayer, PlayerChestLayer;
     [SerializeField] private const int CONFUSION_MAX = 3;
-    [SerializeField] private int _confusion;
-    [SerializeField] private float _movementSpeed = 1;
-    private Path _path;
-    private int _pathIndex = 1;
+    [SerializeField] public int _confusion;
+    [SerializeField] public float _movementSpeed = 1;
+    public Path _path;
+    public int _pathIndex = 1;
     [SerializeField] private const float VIEW_RADIUS = 1000f;
-    private Vector2Int _position;
-    [SerializeField] private int _layer = 0;
+    public Vector2Int _position;
+    [SerializeField] public int _layer = 0;
     public Transform PlayerTransform, PlayerChest, PlayerEyes, PlayerFeet;
     public Vector2Int PlayerPos;
     public int PlayerLayer;
@@ -49,6 +56,7 @@ public class EnemyMove : MonoBehaviour
     public void AddSelfToSingleton()
     {
         _gridBasedBehaviours.EnemyMoves.Add(this);
+        _gridBasedBehaviours.GridChildren.enemyMoves.Add(this);
     }
 
     public async Task MoveRandom()
@@ -136,6 +144,57 @@ public class EnemyMove : MonoBehaviour
         if (path == null) return;
         _path = path;
         _pathIndex = 1;
+    }
+
+    public object Save()
+    {
+        return new WrappedEnemy(this);
+    }
+}
+
+public class WrappedEnemy
+{
+    public Vector3 position;
+    public Vector2Int gridPosition;
+    public int _confusion;
+    public float _movementSpeed = 1;
+    public Path _path;
+    public int _pathIndex = 1;
+    public int _layer = 0;
+
+    [JsonConstructor]
+    public WrappedEnemy(int confusion, float movementSpeed, Path path, int pathIndex, int layer, Vector3 position, Vector2Int gridPosition)
+    {
+        _confusion = confusion;
+        _movementSpeed = movementSpeed;
+        _path = path;
+        _pathIndex = pathIndex;
+        _layer = layer;
+        this.position = position;
+        this.gridPosition = gridPosition;
+    }
+
+    public WrappedEnemy(EnemyMove enemy)
+    {
+        _confusion = enemy._confusion;
+        _movementSpeed = enemy._movementSpeed;
+        _path = enemy._path;
+        _pathIndex = enemy._pathIndex;
+        _layer = enemy._layer;
+        position = enemy.transform.position;
+        gridPosition = enemy._position;
+    }
+
+    public void LoadPrefab()
+    {
+        var enemy = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/enemy.prefab");
+        var instantiated = Object.Instantiate(enemy, position, Quaternion.identity).GetComponent<EnemyMove>();
+        instantiated._confusion = _confusion;
+        instantiated._movementSpeed = _movementSpeed;
+        instantiated._path = _path;
+        instantiated._pathIndex = _pathIndex;
+        instantiated._layer = _layer;
+        instantiated._position = gridPosition;
     }
 }
 
