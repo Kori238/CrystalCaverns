@@ -46,43 +46,17 @@ public sealed class GridBasedBehaviours : MonoBehaviour
 
     public void SaveGrid()
     {
+        var DataManipulation = new DataPersistence();
         var settings = new JsonSerializerSettings()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore
         };
 
-        List<WrappedPortal> SavedItems = new();
-        foreach (var item in GridChildren.portals)
-        {
-            var savedItem = item.Save();
-            SavedItems.Add(savedItem as WrappedPortal);
-        }
-        var serializedSavable = JsonConvert.SerializeObject(SavedItems, Formatting.Indented, settings);
-        Debug.Log(serializedSavable);
-        var deserializedSavable = JsonConvert.DeserializeObject<List<WrappedPortal>>(serializedSavable);
-        Debug.Log(deserializedSavable);
-        foreach (var item in deserializedSavable)
-        {
-            item.LoadPrefab();
-        }
+        var serializedPortals = DataManipulation.SerializeList<Portal, WrappedPortal>(GridChildren.portals);
+        var serializedEnemies = DataManipulation.SerializeList<EnemyMove, WrappedEnemy>(GridChildren.enemyMoves);
 
-        var SavedEnemies = new List<WrappedEnemy>();
-        foreach (var item in GridChildren.enemyMoves)
-        {
-            var savedItem = item.Save();
-            SavedEnemies.Add(savedItem as WrappedEnemy);
-            Destroy(item.gameObject);
-        }
-        var serializedSavableEnemies = JsonConvert.SerializeObject(SavedEnemies, Formatting.Indented, settings);
-        Debug.Log(serializedSavableEnemies);
-        var deserializedSavableEnemies = JsonConvert.DeserializeObject<List<WrappedEnemy>>(serializedSavableEnemies);
-        Debug.Log(deserializedSavableEnemies);
-        foreach (var item in deserializedSavableEnemies)
-        {
-            item.LoadPrefab();
-        }
-
-        Debug.Log(serializedSavable);
+        DataManipulation.LoadSerializedList<WrappedPortal>(serializedPortals);
+        DataManipulation.LoadSerializedList<WrappedEnemy>(serializedEnemies);
 
         var serialized = JsonConvert.SerializeObject(Grids, Formatting.Indented, settings);
         Debug.Log(serialized);

@@ -15,7 +15,7 @@ using static Portal;
 using UnityEngine.UIElements;
 using static UnityEditor.Experimental.GraphView.GraphView;
 
-public class EnemyMove : MonoBehaviour
+public class EnemyMove : MonoBehaviour, ISaveable
 {
     #pragma warning disable CS0649
     [SerializeField] private SpriteRenderer _sprite;
@@ -152,7 +152,7 @@ public class EnemyMove : MonoBehaviour
     }
 }
 
-public class WrappedEnemy
+public class WrappedEnemy : IUnwrappable
 {
     public Vector3 position;
     public Vector2Int gridPosition;

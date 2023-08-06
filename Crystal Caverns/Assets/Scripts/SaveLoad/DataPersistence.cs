@@ -12,6 +12,32 @@ using UnityEngine.UI;
 
 public class DataPersistence
 {
+    public string SerializeList<T, T2>(List<T> objects)
+    {
+        var settings = new JsonSerializerSettings()
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+        };
+        List<T2> savedItems = new();
+        foreach (var item in objects)
+        {
+            var savedItem = (T2)(item as ISaveable).Save();
+            savedItems.Add(savedItem);
+        }
+        var serializedItems = JsonConvert.SerializeObject(savedItems, Formatting.Indented, settings);
+        return serializedItems;
+    }
+
+    public void LoadSerializedList<T>(string serializedObjects)
+    {
+        var deserializedSavable = JsonConvert.DeserializeObject<List<T>>(serializedObjects);
+        foreach (var item in deserializedSavable)
+        {
+            (item as IUnwrappable).LoadPrefab();
+        }
+    }
+
+
     public bool SaveData<T>(string relativePath, T data)
     {
         var path = Application.persistentDataPath + relativePath;
