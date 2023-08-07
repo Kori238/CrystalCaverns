@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 public class DataPersistence
 {
-    public string SerializeList<T, T2>(List<T> objects)
+    public List<T2> WrapList<T, T2>(List<T> objects)
     {
         var settings = new JsonSerializerSettings()
         {
@@ -21,25 +21,27 @@ public class DataPersistence
         List<T2> savedItems = new();
         foreach (var item in objects)
         {
-            var savedItem = (T2)(item as ISaveable).Save();
+            var savedItem = (T2)(item as ISaveable)?.Save();
             savedItems.Add(savedItem);
         }
-        var serializedItems = JsonConvert.SerializeObject(savedItems, Formatting.Indented, settings);
-        return serializedItems;
+        return savedItems;
     }
 
-    public void LoadSerializedList<T>(string serializedObjects)
+    public void LoadWrappedList<T, T2>(List<T> wrappedList)
     {
-        var deserializedSavable = JsonConvert.DeserializeObject<List<T>>(serializedObjects);
-        foreach (var item in deserializedSavable)
+        foreach (var item in wrappedList)
         {
-            (item as IUnwrappable).LoadPrefab();
+            (item as IUnwrappable)?.LoadPrefab();
         }
     }
 
 
     public bool SaveData<T>(string relativePath, T data)
     {
+        var settings = new JsonSerializerSettings()
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+        };
         var path = Application.persistentDataPath + relativePath;
         try
         {
@@ -55,7 +57,7 @@ public class DataPersistence
 
             using var stream = File.Create(path);
             stream.Close();
-            File.WriteAllText(path, JsonConvert.SerializeObject(data));
+            File.WriteAllText(path, JsonConvert.SerializeObject(data, Formatting.Indented, settings));
             return true;
         }
         catch (Exception e)
@@ -67,7 +69,23 @@ public class DataPersistence
 
     public T LoadData<T>(string relativePath)
     {
-        throw new System.NotImplementedException();
+        var path = Application.persistentDataPath + relativePath;
+        if (!File.Exists(path))
+        {
+            Debug.LogError($"Cannot load file at {path} as it does not exist");
+            throw new FileNotFoundException($"{path} does not exist");
+        }
+
+        try
+        {
+            var data = JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
+            return data;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Could not load data at {path} due to {e.Message} {e.StackTrace}");
+            throw;
+        }
     }
 
     public bool SaveSceneData(string sceneName, string relativePath)

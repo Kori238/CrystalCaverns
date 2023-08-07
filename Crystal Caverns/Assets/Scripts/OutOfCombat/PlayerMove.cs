@@ -62,8 +62,9 @@ public class PlayerMove : MonoBehaviour
     void Update()
     {
         if (Input.GetMouseButtonUp(0))
-        {
-           UpdateCurrentPath();
+        { 
+            Debug.Log("clicc");
+            UpdateCurrentPath();
         }
         
     }

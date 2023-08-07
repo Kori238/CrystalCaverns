@@ -70,37 +70,82 @@ public class Portal : MonoBehaviour, ISaveable
         ChangeScene(sceneName);
     }
 
-    private async void ChangeScene(SceneNames name)
+    private async void ChangeScene(SceneNames name, bool checkSaves = true)
     {
-        var scene = SceneManager.LoadSceneAsync(sceneName.ToString());
-        scene.allowSceneActivation = false;
-
-        _loadingScreen.SetActive(true);
-        var loadingScreenBackground = _loadingScreen.transform.GetChild(0).GetComponent<Image>();
-        var alpha = 0f;
-
-        while (alpha < 1f)
+        AsyncOperation scene;
+        if (checkSaves && File.Exists(Application.persistentDataPath + $"/saves/{name}.json"))
         {
-            alpha += 2f * Time.deltaTime;
-            loadingScreenBackground.color = new Color(0f, 0f, 0f, alpha);
-            await Task.Yield();
+            scene = SceneManager.LoadSceneAsync("CleanScene");
+            scene.allowSceneActivation = false;
+            _loadingScreen.SetActive(true);
+
+            var dataManipulation = new DataPersistence();
+            var wrappedGrid = dataManipulation.LoadData<WrappedGrid>($"/saves/{name}.json");
+            
+            var loadingScreenBackground = _loadingScreen.transform.GetChild(0).GetComponent<Image>();
+            var alpha = 0f;
+
+            while (alpha < 1f)
+            {
+                alpha += 2f * Time.deltaTime;
+                loadingScreenBackground.color = new Color(0f, 0f, 0f, alpha);
+                await Task.Yield();
+            }
+
+            do
+            {
+                await Task.Yield();
+            } while (scene.progress < 0.9f);
+
+            scene.allowSceneActivation = true;
+
+            do
+            {
+                await Task.Yield();
+            } while (!scene.isDone);
+
+            var gridBasedBehaviours = GameObject.Find("Grid").GetComponent<GridBasedBehaviours>();
+            gridBasedBehaviours.Unwrap(wrappedGrid);
+
+            while (alpha > 0f)
+            {
+                alpha -= 2f * Time.deltaTime;
+                loadingScreenBackground.color = new Color(0f, 0f, 0f, alpha);
+                await Task.Yield();
+            }
+
+            _loadingScreen.SetActive(false);
         }
-
-        do
+        else
         {
+            scene = SceneManager.LoadSceneAsync(sceneName.ToString());
+            scene.allowSceneActivation = false;
+            _loadingScreen.SetActive(true);
+            var loadingScreenBackground = _loadingScreen.transform.GetChild(0).GetComponent<Image>();
+            var alpha = 0f;
+            while (alpha < 1f)
+            {
+                alpha += 2f * Time.deltaTime;
+                loadingScreenBackground.color = new Color(0f, 0f, 0f, alpha);
+                await Task.Yield();
+            }
 
-        } while (scene.progress < 0.9f);
+            do
+            {
+                await Task.Yield();
+            } while (scene.progress < 0.9f);
 
-        scene.allowSceneActivation = true;
+            scene.allowSceneActivation = true;
 
-        while (alpha > 0f)
-        {
-            alpha -= 2f * Time.deltaTime;
-            loadingScreenBackground.color = new Color(0f, 0f, 0f, alpha);
-            await Task.Yield();
+            while (alpha > 0f)
+            {
+                alpha -= 2f * Time.deltaTime;
+                loadingScreenBackground.color = new Color(0f, 0f, 0f, alpha);
+                await Task.Yield();
+            }
+
+            _loadingScreen.SetActive(false);
         }
-
-        _loadingScreen.SetActive(false);
     }
 
     public object Save()

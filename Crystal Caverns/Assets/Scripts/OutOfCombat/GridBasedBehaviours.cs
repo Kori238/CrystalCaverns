@@ -2,10 +2,14 @@ using System;
 using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using static UnityEditor.Experimental.GraphView.GraphView;
+using UnityEditor;
 
 public class GridChildren
 {
@@ -46,32 +50,74 @@ public sealed class GridBasedBehaviours : MonoBehaviour
 
     public void SaveGrid()
     {
-        var DataManipulation = new DataPersistence();
-        var settings = new JsonSerializerSettings()
+        var dataManipulation = new DataPersistence();
+        if (!Directory.Exists(Application.persistentDataPath + "/saves"))
         {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-        };
+            Directory.CreateDirectory(Application.persistentDataPath + "/saves");
+        }
 
-        var serializedPortals = DataManipulation.SerializeList<Portal, WrappedPortal>(GridChildren.portals);
-        var serializedEnemies = DataManipulation.SerializeList<EnemyMove, WrappedEnemy>(GridChildren.enemyMoves);
-
-        DataManipulation.LoadSerializedList<WrappedPortal>(serializedPortals);
-        DataManipulation.LoadSerializedList<WrappedEnemy>(serializedEnemies);
-
-        var serialized = JsonConvert.SerializeObject(Grids, Formatting.Indented, settings);
-        Debug.Log(serialized);
-        Grids = null;
-        Grids = JsonConvert.DeserializeObject<List<NodeGrid>>(serialized);
-        Debug.Log(JsonConvert.SerializeObject(Grids, Formatting.Indented, settings));
-        Debug.Log(Grids);
-        //Debug.Log(deserialized._grid[20, 20].HasTile);
+        dataManipulation.SaveData($"/saves/{SceneManager.GetActiveScene().name}.json", new WrappedGrid(this));
     }
 
-    public void UnwrapTilemapFromGrid(List<NodeGrid> wrappedGrids)
+    public void Unwrap(WrappedGrid wrappedObject)
     {
+        var dataManipulation = new DataPersistence();
+        Grids = wrappedObject.grids;
+        UnwrapTilemapFromGrid();
+        ReversedGrids = new List<NodeGrid>(Grids);
+        ReversedGrids.Reverse();
+        Pathfinding = new AStar(Grids);
+        LOS = new LineOfSight(Grids);
+        dataManipulation.LoadWrappedList<WrappedEnemy, EnemyMove>(wrappedObject.wrappedEnemies);
+        dataManipulation.LoadWrappedList<WrappedPortal, Portal>(wrappedObject.wrappedPortals);
+    }
 
+    public void UnwrapTilemapFromGrid()
+    {
+        var z = 0;
+        foreach (var layer in Grids)
+        {
+            var tilemap = Tilemaps[z];
+            for (var x = 0; x < layer.Width; x++)
+            {
+                for (var y = 0; y < layer.Height; y++)
+                {
+                    var position = new Vector3Int(x - layer.Width / 2, y - layer.Height / 2);
+                    var tileName = layer._grid[x, y].TileName;
+                    if (tileName == null) continue;
+                    var tile = Singleton.Instance.TileDictionary.GetValueOrDefault(tileName);
+                    tilemap.SetTile(position, tile);
+                }
+            }
+            z++;
+        }
     }
 }
+
+public class WrappedGrid
+{
+    public List<NodeGrid> grids;
+    public List<WrappedPortal> wrappedPortals;
+    public List<WrappedEnemy> wrappedEnemies;
+
+    [JsonConstructor]
+    public WrappedGrid(List<NodeGrid> grids, List<WrappedPortal> wrappedPortals, List<WrappedEnemy> wrappedEnemies)
+    {
+        this.grids = grids;
+        this.wrappedPortals = wrappedPortals;
+        this.wrappedEnemies = wrappedEnemies;
+    }
+
+    public WrappedGrid(GridBasedBehaviours gbb)
+    {
+        var dataManipulation = new DataPersistence();
+
+        grids = gbb.Grids;
+        wrappedPortals = dataManipulation.WrapList<Portal, WrappedPortal>(gbb.GridChildren.portals);
+        wrappedEnemies = dataManipulation.WrapList<EnemyMove, WrappedEnemy>(gbb.GridChildren.enemyMoves);
+    }
+}
+
 
 public interface ISaveable
 {
