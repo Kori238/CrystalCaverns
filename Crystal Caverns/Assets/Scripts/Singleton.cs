@@ -20,6 +20,7 @@ public sealed class Singleton
     public bool exploring = true;
     public DataPersistence Saving = new();
     public PlayerStats PlayerStats = new();
+    public Portal.SceneNames loadedScene = Portal.SceneNames.None;
 
     public Dictionary<string, BaseTileRules> TileDictionary = new();
     public void CreateDictionary()

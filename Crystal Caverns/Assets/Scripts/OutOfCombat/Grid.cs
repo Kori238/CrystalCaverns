@@ -51,14 +51,12 @@ public class Node
 public class NodeGrid
 {
     public readonly int Width, Height, Layer;
-    private readonly Tilemap _tilemap;
     public readonly Node[,] _grid;
 
     [JsonConstructor]
     public NodeGrid(int width, int height, int layer, Node[,] _grid)
     {
         Width = width; Height = height; Layer = layer;
-        Debug.Log(_grid);
         this._grid = _grid;
     }
 

@@ -38,7 +38,6 @@ public class Portal : MonoBehaviour, ISaveable
     {
         var tilemap = _gridBasedBehaviours.Tilemaps[_currentLayer];
         var cell = tilemap.WorldToCell(transform.position);
-        Debug.Log(transform.position);
         transform.position = tilemap.GetCellCenterWorld(cell);
         pos = (Vector2Int)cell;
         var node = _gridBasedBehaviours.Grids[_currentLayer].GetNodeFromCell(pos.x, pos.y);
@@ -70,9 +69,13 @@ public class Portal : MonoBehaviour, ISaveable
         ChangeScene(sceneName);
     }
 
-    private async void ChangeScene(SceneNames name, bool checkSaves = true)
+    private async void ChangeScene(SceneNames name, bool checkSaves = true, bool savePreviousScene = true)
     {
         AsyncOperation scene;
+        if (savePreviousScene)
+        {
+            _gridBasedBehaviours.SaveGrid();
+        }
         if (checkSaves && File.Exists(Application.persistentDataPath + $"/saves/{name}.json"))
         {
             scene = SceneManager.LoadSceneAsync("CleanScene");

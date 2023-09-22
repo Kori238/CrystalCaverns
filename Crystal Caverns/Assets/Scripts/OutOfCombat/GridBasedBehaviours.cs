@@ -8,8 +8,8 @@ using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
-using static UnityEditor.Experimental.GraphView.GraphView;
 using UnityEditor;
+using Scene = UnityEditor.SearchService.Scene;
 
 public class GridChildren
 {
@@ -27,6 +27,7 @@ public sealed class GridBasedBehaviours : MonoBehaviour
     public List<EnemyMove> EnemyMoves = new();
     public GridChildren GridChildren = new();
     public LineOfSight LOS;
+    public Portal.SceneNames loadedScene = Portal.SceneNames.None;
 
     public void Awake()
     {
@@ -56,7 +57,15 @@ public sealed class GridBasedBehaviours : MonoBehaviour
             Directory.CreateDirectory(Application.persistentDataPath + "/saves");
         }
 
-        dataManipulation.SaveData($"/saves/{SceneManager.GetActiveScene().name}.json", new WrappedGrid(this));
+        string sceneName;
+        if (loadedScene == Portal.SceneNames.None)
+        {
+            Enum.TryParse(SceneManager.GetActiveScene().name, true, out loadedScene);
+        } 
+        if (loadedScene == Portal.SceneNames.None) sceneName = SceneManager.GetActiveScene().name;
+        else sceneName = loadedScene.ToString();
+        
+        dataManipulation.SaveData($"/saves/{sceneName}.json", new WrappedGrid(this));
     }
 
     public void Unwrap(WrappedGrid wrappedObject)
@@ -68,6 +77,7 @@ public sealed class GridBasedBehaviours : MonoBehaviour
         ReversedGrids.Reverse();
         Pathfinding = new AStar(Grids);
         LOS = new LineOfSight(Grids);
+        loadedScene = wrappedObject.sceneName;
         dataManipulation.LoadWrappedList<WrappedEnemy, EnemyMove>(wrappedObject.wrappedEnemies);
         dataManipulation.LoadWrappedList<WrappedPortal, Portal>(wrappedObject.wrappedPortals);
     }
@@ -99,13 +109,15 @@ public class WrappedGrid
     public List<NodeGrid> grids;
     public List<WrappedPortal> wrappedPortals;
     public List<WrappedEnemy> wrappedEnemies;
+    public Portal.SceneNames sceneName;
 
     [JsonConstructor]
-    public WrappedGrid(List<NodeGrid> grids, List<WrappedPortal> wrappedPortals, List<WrappedEnemy> wrappedEnemies)
+    public WrappedGrid(List<NodeGrid> grids, List<WrappedPortal> wrappedPortals, List<WrappedEnemy> wrappedEnemies, Portal.SceneNames sceneName)
     {
         this.grids = grids;
         this.wrappedPortals = wrappedPortals;
         this.wrappedEnemies = wrappedEnemies;
+        this.sceneName = sceneName;
     }
 
     public WrappedGrid(GridBasedBehaviours gbb)
@@ -115,6 +127,8 @@ public class WrappedGrid
         grids = gbb.Grids;
         wrappedPortals = dataManipulation.WrapList<Portal, WrappedPortal>(gbb.GridChildren.portals);
         wrappedEnemies = dataManipulation.WrapList<EnemyMove, WrappedEnemy>(gbb.GridChildren.enemyMoves);
+        sceneName = gbb.loadedScene;
+        //Enum.TryParse(SceneManager.GetActiveScene().name, true, out sceneName);
     }
 }
 

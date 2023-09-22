@@ -21,7 +21,6 @@ public class ThisSceneData : MonoBehaviour
 
     void Start()
     {
-        Test();
     }
 
     private async void Test()
