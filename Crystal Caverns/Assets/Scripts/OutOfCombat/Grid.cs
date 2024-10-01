@@ -190,31 +190,35 @@ public class AStar
                     { FindAdjacents(currentNode.X, currentNode.Y, currentNode.Z) };
             }
 
+            List<Node> allAdjacent = new();
             foreach (var adjacents in adjacentsList)
             {
-                var allAdjacent = adjacents.SameLayer.Concat(adjacents.LayerTraversalUp).Concat(adjacents.LayerTraversalDown).ToList();
-                foreach (var adjacentNode in allAdjacent)
+                allAdjacent = adjacents.SameLayer.Concat(adjacents.LayerTraversalUp)
+                    .Concat(adjacents.LayerTraversalDown).ToList();
+            }
+
+            foreach (var adjacentNode in allAdjacent)
+            {
+                if (_searchedNodes.Contains(adjacentNode) || !adjacentNode.HasTile) continue;
+                if (!dict.GetValueOrDefault(adjacentNode.TileName).Walkable)
                 {
-                    if (_searchedNodes.Contains(adjacentNode) || !adjacentNode.HasTile) continue;
-                    if (!dict.GetValueOrDefault(adjacentNode.TileName).Walkable)
-                    {
-                        _searchedNodes.Add(adjacentNode);
-                        continue;
-                    }
+                    _searchedNodes.Add(adjacentNode);
+                    continue;
+                }
 
-                    var tentativeGCost = currentNode.GCost + CalculateDistanceCost(currentNode, adjacentNode);
-                    if (tentativeGCost < adjacentNode.GCost)
-                    {
-                        adjacentNode.PreviousNode = currentNode;
-                        adjacentNode.GCost = tentativeGCost;
-                        adjacentNode.HCost = CalculateDistanceCost(adjacentNode, endNode);
-                        adjacentNode.UpdateFCost();
+                var tentativeGCost = currentNode.GCost + CalculateDistanceCost(currentNode, adjacentNode);
+                if (tentativeGCost < adjacentNode.GCost)
+                {
+                    adjacentNode.PreviousNode = currentNode;
+                    adjacentNode.GCost = tentativeGCost;
+                    adjacentNode.HCost = CalculateDistanceCost(adjacentNode, endNode);
+                    adjacentNode.UpdateFCost();
 
-                        if (!_unsearchedNodes.Contains(adjacentNode))
-                        {
-                            _unsearchedNodes.Add(adjacentNode);
-                        }
+                    if (!_unsearchedNodes.Contains(adjacentNode))
+                    {
+                        _unsearchedNodes.Add(adjacentNode);
                     }
+                    
                 }
             }
         }
